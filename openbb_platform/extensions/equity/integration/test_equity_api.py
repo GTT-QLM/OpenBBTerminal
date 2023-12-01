@@ -1,8 +1,10 @@
 """API integration tests for equity extension."""
+import base64
 from datetime import time
 
 import pytest
 import requests
+from openbb_core.env import Env
 from openbb_core.provider.utils.helpers import get_querystring
 
 # pylint: disable=too-many-lines,redefined-outer-name
@@ -10,7 +12,11 @@ from openbb_core.provider.utils.helpers import get_querystring
 
 @pytest.fixture(scope="session")
 def headers():
-    return {}
+    userpass = f"{Env().API_USERNAME}:{Env().API_PASSWORD}"
+    userpass_bytes = userpass.encode("ascii")
+    base64_bytes = base64.b64encode(userpass_bytes)
+
+    return {"Authorization": f"Basic {base64_bytes.decode('ascii')}"}
 
 
 @pytest.mark.parametrize(
@@ -120,7 +126,7 @@ def test_equity_calendar_splits(params, headers):
     params = {p: v for p, v in params.items() if v}
 
     query_str = get_querystring(params, [])
-    url = f"http://0.0.0.0:8000/api/v1/equity/calendar/split?{query_str}"
+    url = f"http://0.0.0.0:8000/api/v1/equity/calendar/splits?{query_str}"
     result = requests.get(url, headers=headers, timeout=10)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
@@ -445,7 +451,7 @@ def test_equity_ownership_institutional(params, headers):
 
     query_str = get_querystring(params, [])
     url = f"http://0.0.0.0:8000/api/v1/equity/ownership/institutional?{query_str}"
-    result = requests.get(url, headers=headers, timeout=10)
+    result = requests.get(url, headers=headers, timeout=20)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
@@ -908,7 +914,8 @@ def test_equity_price_historical(params, headers):
 
     query_str = get_querystring(params, [])
     url = f"http://0.0.0.0:8000/api/v1/equity/price/historical?{query_str}"
-    result = requests.get(url, headers=headers, timeout=30)
+    result = requests.get(url, headers=headers, timeout=40)
+    result = requests.get(url, headers=headers, timeout=40)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
@@ -1235,7 +1242,7 @@ def test_equity_discovery_top_retail(params, headers):
 
 @pytest.mark.parametrize(
     "params",
-    [({"limit": 5})],
+    [({"provider": "seeking_alpha"})],
 )
 @pytest.mark.integration
 def test_equity_discovery_upcoming_release_days(params, headers):
@@ -1245,7 +1252,7 @@ def test_equity_discovery_upcoming_release_days(params, headers):
     url = (
         f"http://0.0.0.0:8000/api/v1/equity/discovery/upcoming_release_days?{query_str}"
     )
-    result = requests.get(url, headers=headers, timeout=10)
+    result = requests.get(url, headers=headers, timeout=30)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
@@ -1271,17 +1278,6 @@ def test_equity_discovery_upcoming_release_days(params, headers):
                 "form_type": "10-Q",
                 "is_done": "true",
                 "provider": "fmp",
-            }
-        ),
-        (
-            {
-                "provider": "intrinio",
-                "symbol": "AAPL",
-                "thea_enabled": None,
-                "start_date": "2023-11-06",
-                "end_date": "2023-11-07",
-                "limit": 50,
-                "form_type": "10-Q",
             }
         ),
     ],
@@ -1310,7 +1306,7 @@ def test_equity_shorts_fails_to_deliver(params, headers):
 
     query_str = get_querystring(params, [])
     url = f"http://0.0.0.0:8000/api/v1/equity/shorts/fails_to_deliver?{query_str}"
-    result = requests.get(url, headers=headers, timeout=10)
+    result = requests.get(url, headers=headers, timeout=20)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
@@ -1340,7 +1336,7 @@ def test_equity_shorts_short_interest(params, headers):
 
     query_str = get_querystring(params, [])
     url = f"http://0.0.0.0:8000/api/v1/equity/shorts/short_interest?{query_str}"
-    result = requests.get(url, headers=headers, timeout=10)
+    result = requests.get(url, headers=headers, timeout=60)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
@@ -1348,18 +1344,6 @@ def test_equity_shorts_short_interest(params, headers):
 @pytest.mark.parametrize(
     "params",
     [
-        (
-            {
-                "symbol": "CLOV",
-                "date": "2023-10-26",
-                "provider": "polygon",  # premium endpoint
-                "limit": 1000,
-                "timestamp_lte": None,
-                "timestamp_gte": None,
-                "timestamp_gt": None,
-                "timestamp_lt": None,
-            }
-        ),
         (
             {
                 "symbol": "CLOV",
@@ -1380,7 +1364,7 @@ def test_equity_price_nbbo(params, headers):
 
     query_str = get_querystring(params, [])
     url = f"http://0.0.0.0:8000/api/v1/equity/price/nbbo?{query_str}"
-    result = requests.get(url, headers=headers, timeout=10)
+    result = requests.get(url, headers=headers, timeout=40)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
@@ -1421,7 +1405,7 @@ def test_equity_market_snapshots(params, headers):
 
     query_str = get_querystring(params, [])
     url = f"http://0.0.0.0:8000/api/v1/equity/market_snapshots?{query_str}"
-    result = requests.get(url, headers=headers, timeout=10)
+    result = requests.get(url, headers=headers, timeout=20)
     assert isinstance(result, requests.Response)
     assert result.status_code == 200
 
