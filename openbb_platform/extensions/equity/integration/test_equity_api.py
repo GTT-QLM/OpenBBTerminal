@@ -230,7 +230,28 @@ def test_equity_fundamental_cash_growth(params, headers):
 
 @parametrize(
     "params",
-    [({"symbol": "AAPL", "provider": "fmp"})],
+    [
+        (
+            {
+                "symbol": "AAPL",
+                "start_date": "2020-01-01",
+                "end_date": "2021-01-01",
+                "provider": "fmp",
+            }
+        ),
+        (
+            {
+                "symbol": "AAPL",
+                "provider": "fmp",
+            }
+        ),
+        (
+            {
+                "symbol": "AAPL,MSFT",
+                "provider": "fmp",
+            }
+        ),
+    ],
 )
 @pytest.mark.integration
 def test_equity_fundamental_management_compensation(params, headers):
@@ -261,12 +282,34 @@ def test_equity_fundamental_historical_splits(params, headers):
 @parametrize(
     "params",
     [
-        ({"symbol": "AAPL", "provider": "fmp"}),
         (
             {
                 "symbol": "AAPL",
+                "start_date": "2021-01-01",
+                "end_date": "2023-06-06",
                 "limit": 100,
                 "provider": "intrinio",
+            }
+        ),
+        (
+            {
+                "symbol": "AAPL",
+                "start_date": "2021-01-01",
+                "end_date": "2023-06-06",
+                "provider": "fmp",
+            }
+        ),
+        (
+            {
+                "symbol": "AAPL",
+                "limit": 3,
+                "provider": "intrinio",
+            }
+        ),
+        (
+            {
+                "symbol": "AAPL",
+                "provider": "fmp",
             }
         ),
     ],
@@ -563,7 +606,26 @@ def test_equity_ownership_major_holders(params, headers):
 
 @parametrize(
     "params",
-    [({"symbol": "AAPL", "provider": "fmp"})],
+    [
+        ({"symbol": "AAPL", "limit": 10, "provider": "fmp"}),
+        (
+            {
+                "symbol": "AAPL",
+                "limit": 10,
+                "provider": "benzinga",
+                # optional provider params
+                "fields": None,
+                "date": None,
+                "date_from": None,
+                "date_to": None,
+                "importance": None,
+                "updated": None,
+                "action": None,
+                "analyst": None,
+                "firm": None,
+            }
+        ),
+    ],
 )
 @pytest.mark.integration
 def test_equity_estimates_price_target(params, headers):
